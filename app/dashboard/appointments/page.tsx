@@ -11,7 +11,7 @@ import {
   ChevronRight,
   Loader2
 } from 'lucide-react';
-import { appointmentsApi } from '@/lib/api';
+import { v1Api } from '@/lib/api';
 
 export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<any[]>([]);
@@ -20,10 +20,12 @@ export default function AppointmentsPage() {
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const response = await appointmentsApi.getAll();
-        setAppointments(response.data);
+        const response = await v1Api.appointments.getAll();
+        const aptData = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+        setAppointments(aptData);
       } catch (error) {
         console.error('Failed to fetch appointments:', error);
+        setAppointments([]);
       } finally {
         setLoading(false);
       }
@@ -71,7 +73,7 @@ export default function AppointmentsPage() {
             </div>
             {/* Minimal Calendar UI Placeholder */}
             <div className="grid grid-cols-7 gap-2 text-center text-xs mb-2">
-              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => <div key={d} className="font-bold text-gray-400">{d}</div>)}
+              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => <div key={`${d}-${i}`} className="font-bold text-gray-400">{d}</div>)}
             </div>
             <div className="grid grid-cols-7 gap-2 text-center text-sm">
               {Array.from({ length: 31 }, (_, i) => {
@@ -117,9 +119,9 @@ export default function AppointmentsPage() {
                         <CalendarIcon className="h-5 w-5" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold text-gray-900">{apt.title}</h4>
+                        <h4 className="text-sm font-bold text-gray-900">{apt.lead?.name || 'Meeting'}</h4>
                         <p className="text-xs text-gray-500">
-                          with {apt.lead?.first_name} {apt.lead?.last_name}
+                          with {apt.lead?.name || 'Unknown Lead'}
                         </p>
                       </div>
                     </div>

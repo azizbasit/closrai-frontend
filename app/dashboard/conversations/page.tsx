@@ -11,7 +11,7 @@ import {
   ExternalLink,
   Loader2
 } from 'lucide-react';
-import { conversationsApi } from '@/lib/api';
+import { v1Api } from '@/lib/api';
 
 export default function ConversationsPage() {
   const [conversations, setConversations] = useState<any[]>([]);
@@ -21,10 +21,12 @@ export default function ConversationsPage() {
   useEffect(() => {
     const fetchConversations = async () => {
       try {
-        const response = await conversationsApi.getAll();
-        setConversations(response.data);
+        const response = await v1Api.conversations.getAll();
+        const convData = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+        setConversations(convData);
       } catch (error) {
         console.error('Failed to fetch conversations:', error);
+        setConversations([]);
       } finally {
         setLoading(false);
       }
@@ -33,9 +35,8 @@ export default function ConversationsPage() {
     fetchConversations();
   }, []);
 
-  const filteredConversations = conversations.filter(conv => 
-    conv.lead?.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    conv.lead?.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredConversations = (Array.isArray(conversations) ? conversations : []).filter(conv => 
+    conv.lead?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     conv.agent?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -100,7 +101,7 @@ export default function ConversationsPage() {
                     <div>
                       <div className="flex items-center space-x-2">
                         <h4 className="text-sm font-bold text-gray-900">
-                          {conv.lead?.first_name} {conv.lead?.last_name}
+                          {conv.lead?.name || 'Unknown Lead'}
                         </h4>
                         <span className="text-xs text-gray-400">•</span>
                         <span className="text-xs text-gray-500">{conv.agent?.name || 'AI Agent'}</span>

@@ -11,7 +11,7 @@ import {
   Calendar,
   Loader2
 } from 'lucide-react';
-import { leadsApi } from '@/lib/api';
+import { v1Api } from '@/lib/api';
 
 export default function LeadsPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,10 +21,13 @@ export default function LeadsPage() {
   useEffect(() => {
     const fetchLeads = async () => {
       try {
-        const response = await leadsApi.getAll();
-        setLeads(response.data);
+        const response = await v1Api.leads.getAll();
+        // Laravel pagination returns the array in response.data.data
+        const leadsData = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+        setLeads(leadsData);
       } catch (error) {
         console.error('Failed to fetch leads:', error);
+        setLeads([]);
       } finally {
         setLoading(false);
       }
@@ -33,9 +36,8 @@ export default function LeadsPage() {
     fetchLeads();
   }, []);
 
-  const filteredLeads = leads.filter(lead => 
-    lead.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredLeads = (Array.isArray(leads) ? leads : []).filter(lead => 
+    lead.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     lead.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -97,10 +99,10 @@ export default function LeadsPage() {
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-3">
                       <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center font-bold text-blue-600">
-                        {lead.first_name?.[0] || 'L'}
+                        {lead.name?.[0] || 'L'}
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{lead.first_name} {lead.last_name}</p>
+                        <p className="text-sm font-medium text-gray-900">{lead.name}</p>
                         <div className="flex items-center space-x-2 text-xs text-gray-500">
                           <Mail className="h-3 w-3" />
                           <span>{lead.email}</span>
@@ -122,14 +124,14 @@ export default function LeadsPage() {
                       <div className="h-2 w-16 rounded-full bg-gray-100 overflow-hidden">
                         <div 
                           className={`h-full rounded-full ${
-                            (lead.lead_score || 0) >= 80 ? 'bg-green-500' :
-                            (lead.lead_score || 0) >= 50 ? 'bg-yellow-500' :
+                            (lead.score || 0) >= 80 ? 'bg-green-500' :
+                            (lead.score || 0) >= 50 ? 'bg-yellow-500' :
                             'bg-red-500'
                           }`}
-                          style={{ width: `${lead.lead_score || 0}%` }}
+                          style={{ width: `${lead.score || 0}%` }}
                         />
                       </div>
-                      <span className="text-xs font-medium text-gray-600">{lead.lead_score || 0}</span>
+                      <span className="text-xs font-medium text-gray-600">{lead.score || 0}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">{lead.source || 'Direct'}</td>

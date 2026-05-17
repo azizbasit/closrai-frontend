@@ -10,7 +10,7 @@ import {
   ArrowDownRight,
   Loader2
 } from 'lucide-react';
-import { dashboardApi } from '@/lib/api';
+import { v1Api } from '@/lib/api';
 
 export default function DashboardPage() {
   const [data, setData] = useState<any>(null);
@@ -19,7 +19,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await dashboardApi.getStats();
+        const response = await v1Api.dashboard.getStats();
         setData(response.data);
       } catch (error) {
         console.error('Failed to fetch dashboard stats:', error);
@@ -85,10 +85,10 @@ export default function DashboardPage() {
                 <div key={lead.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors">
                   <div className="flex items-center space-x-3">
                     <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-600">
-                      {lead.first_name?.[0] || 'L'}
+                      {lead.name?.[0] || 'L'}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{lead.first_name} {lead.last_name}</p>
+                      <p className="text-sm font-medium text-gray-900">{lead.name}</p>
                       <p className="text-xs text-gray-500">{lead.email}</p>
                     </div>
                   </div>
@@ -121,7 +121,7 @@ export default function DashboardPage() {
                       </span>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{appointment.title}</p>
+                      <p className="text-sm font-medium text-gray-900">{appointment.lead?.name || 'Meeting'}</p>
                       <p className="text-xs text-gray-500">
                         {new Date(appointment.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
